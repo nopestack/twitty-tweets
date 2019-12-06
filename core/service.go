@@ -1,38 +1,81 @@
 package core
 
-type tweetService struct {
+import (
+	errs "github.com/pkg/errors"
+)
+
+var (
+	ErrTweetNotFound = errs.New("Tweet not found")
+	ErrInvalidTweet  = errs.New("Invalid tweet")
+)
+
+type TweetService struct {
 	repository Repository
 }
 
-func NewTweetService(repository Repository) *tweetService {
-	return &tweetService{
+// NewTweetService returns an instance of the tweeting service
+func NewTweetService(repository Repository) *TweetService {
+	return &TweetService{
 		repository,
 	}
 
 }
 
-func (ts *tweetService) FindByID(id int) (*Tweet, error) {
+func (ts *TweetService) FindByID(id int) (*Tweet, error) {
 	// Finds a tweet by ID
+	/*
+		No input validation needed
+		- if error on Find, return a TweetNotFound Error
+	*/
 	return ts.repository.Find(id)
 }
 
-func (ts *tweetService) GetAll(author string) ([]*Tweet, error) {
-	// Fetches every tweet by author
+func (ts *TweetService) GetAll(author string) ([]*Tweet, error) {
+	// Fetches every tweet?
 	return nil, nil
 }
 
-func (ts *tweetService) AddTweet(redirect *Tweet) error {
-
+func (ts *TweetService) AddTweet(tweet *Tweet) error {
 	// Validation logic goes here
+	/*
+		- check the provided input tweet, e.g. empty string set as content, unparseable dates, empty string author
 
-	return ts.repository.Create(redirect)
+		- if error, then return an invalid input error
+		else create tweet
+	*/
+	return ts.repository.Create(tweet)
 }
 
-func (ts *tweetService) Update(id int, content string) error {
-	return nil
+func (ts *TweetService) UpdateTweet(id int, content string) error {
+	// Input validation here
+	/*
+		- search for tweet by id
+		- if tweet exists, then call Update
+		- if not, return a tweet not found error
+	*/
+	_, err := ts.repository.Find(id)
 
+	if err != nil {
+		// Return a tweet not found error
+		return errs.Wrap(ErrTweetNotFound, "core.service.UpdateTweet")
+	}
+
+	return ts.repository.Update(id, content)
 }
 
-func (ts *tweetService) Delete(id int) error {
-	return nil
+func (ts *TweetService) DeleteTweet(id int) error {
+	// input validation here
+	/*
+		- search for tweet by id
+		- if tweet exists, then call Delete
+		- if not, return a tweet not found error
+	*/
+	_, err := ts.repository.Find(id)
+
+	if err != nil {
+		// Return a tweet not found error
+		return errs.Wrap(ErrTweetNotFound, "core.service.DeleteTweet")
+	}
+
+	return ts.repository.Delete(id)
 }
